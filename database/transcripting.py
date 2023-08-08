@@ -22,8 +22,7 @@ embedding_model = PretrainedSpeakerEmbedding(
     "speechbrain/spkrec-ecapa-voxceleb",
     device=torch.device("cpu"))
 
-KEY='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'
-openai.api_key = KEY
+
 warnings.filterwarnings('ignore')
 
 def transcription_file(path):
