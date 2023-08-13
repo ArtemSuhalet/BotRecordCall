@@ -74,8 +74,8 @@ def transcription_file(path):
                 datetime.timedelta(seconds=segment['end'])) + '\n')
             f.write(segment['text'].strip() + '\n')
             f.write('\n')
-    return save_target
+    #return save_target
 
 
-path = "/Users/mymacbook/Documents/12.mp3"
-transcript = transcription_file(path)
+# path = "/Users/mymacbook/Documents/13.mp3"
+# transcript = transcription_file(path)
