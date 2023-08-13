@@ -1,9 +1,9 @@
-import asyncio
 from telebot.types import Message
 from loader import bot
 import openai
 import os
 from database.data import *
+from database.meet_process import *
 
 
 openai.api_key = os.getenv('KEY')
@@ -13,6 +13,8 @@ requests_array = []
 def bot_echo(message: Message):
     #запросы
     user_request = message.text
+    if user_request.startswith("https://meet.google.com/"):
+        process_google_meet_link(user_request)
     file_request = read_file_request()
     #формируем и закидываем в массив запросы
     request_obj = {
