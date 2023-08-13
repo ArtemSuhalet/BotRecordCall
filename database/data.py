@@ -1,3 +1,5 @@
+import os
+
 import openai
 from loader import bot
 from config_data.config import *
@@ -41,8 +43,8 @@ openai.api_key = os.getenv('KEY')
 #         User_Data.create(user_telegram_id=user_telegram_id,
 #                             user_command=command,
 #                             user_time_request=request_time,
+#                             user_hotels_list=text_for_database
 #                             )
-
 
 
 def read_file_request():
