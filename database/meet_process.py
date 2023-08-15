@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 #from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
@@ -29,7 +30,10 @@ def process_google_meet_link(URL):
     :return:
     """
     service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
-    options = webdriver.ChromeOptions()
+    # options = webdriver.ChromeOptions()
+    # options.add_argument("--use-fake-ui-for-media-stream")
+    options = Options()
+    options.add_argument("--use-fake-ui-for-media-stream")
     driver = webdriver.Chrome(service=service, options=options)
     #URL = 'ссылка на встречу'
     driver.get("https://accounts.google.com/signin")
@@ -40,92 +44,71 @@ def process_google_meet_link(URL):
     email_elem.send_keys(Keys.RETURN)
     time.sleep(2)  # Добавлено для паузы
 
-    # # Получение изображения капчи
-    # captcha_image_element = driver.find_element('css selector', '#captchaimg')
-    # captcha_image_url = captcha_image_element.get_attribute('src')
-    # print(captcha_image_url)
-    # time.sleep(5)
-    #
-    # # Получение решения капчи & Ввод решения капчи
-    # captcha_input_element = driver.find_element('xpath', '//*[@id="ca"]')
-    # captcha_input_element.send_keys(captcha_solution(captcha_image_url))
-    # #captcha_input_element.send_keys(str(123456))
-    # captcha_input_element.send_keys(Keys.RETURN)
-    # time.sleep(5)
-    #
-    # password_elem = driver.find_element("xpath", "//input[@type='password']")
-    # password_elem.send_keys(PASSWORD)
-    # password_elem.send_keys(Keys.RETURN)
-    # time.sleep(5)  # Добавлено для паузы
-    #
-    # # Переход к встрече Google Meet
-    # driver.get(URL)
-    # time.sleep(5)  # время для загрузки
-    #
-    # # Присоединение к встрече
-    # join_button = driver.find_element("xpath", "//*[@id="'xDetDlgVideo'"]/div[2]/div/div[1]/span/a")
-    # join_button.click()
-    #
-    # # Создаем поток для записи аудио
-    # audio_thread = threading.Thread(target=record_audio)
-    # count_participants_thread = threading.Thread(target=finish_record(URL))
-    # transcription_thread = threading.Thread(target=transcription_file('out.wav'))
-    #
-    # try:
-    #     # Запускаем поток записи аудио
-    #     audio_thread.start()
-    #     count_participants_thread.start()
-    #
-    #     transcription_thread.start()
-    #
-    #
-    # finally:
-    #     # Ожидаем завершения потока
-    #     audio_thread.join()
-    #     count_participants_thread.join()
-    #     transcription_thread.join()
-    #
-    # # Закрыть браузер после окончания встречи
-    # driver.quit()
+    # Получение изображения капчи
+    captcha_image_element = driver.find_element('css selector', '#captchaimg')
+    captcha_image_url = captcha_image_element.get_attribute('src')
+    #print(captcha_image_url)
+    time.sleep(5)
+
+    # Получение решения капчи & Ввод решения капчи
+    captcha_input_element = driver.find_element('xpath', '//*[@id="ca"]')
+    captcha_input_element.send_keys(captcha_solution(captcha_image_url))
+    time.sleep(10)
+    #captcha_input_element.send_keys(str(123456))
+    captcha_input_element.send_keys(Keys.RETURN)
+    time.sleep(5)
+
+    password_elem = driver.find_element("xpath", "//input[@type='password']")
+    password_elem.send_keys(PASSWORD)
+    password_elem.send_keys(Keys.RETURN)
+    time.sleep(5)  # Добавлено для паузы
+
+    # Переход к встрече Google Meet
+    driver.get(URL)
+    time.sleep(10)  # время для загрузки
+
+    # Присоединение к встрече
+    #join_button = driver.find_element("xpath", "//*[@id="'xDetDlgVideo'"]/div[2]/div/div[1]/span/a")
+    join_button = driver.find_element("css selector", "#yDmH0d > c-wiz > div > div > div:nth-child(14) > div.crqnQb > div > div.gAGjv > div.vgJExf > div > div > div.d7iDfe.NONs6c > div.shTJQe > div.jtn8y > div.XCoPyb > div:nth-child(1) > button > span")
+
+    join_button.click()
+    time.sleep(10)
+
+    # Создаем поток для записи аудио
+    audio_thread = threading.Thread(target=record_audio)
+    count_participants_thread = threading.Thread(target=finish_record(URL))#(target=finish_record, args=(URL,))
+    transcription_thread = threading.Thread(target=transcription_file('out.wav'))#(target=transcription_file, args=('out.wav',))
+
+    try:
+        # Запускаем поток записи аудио
+        audio_thread.start()
+        count_participants_thread.start()
+
+        transcription_thread.start()
 
 
-def captcha_solution(path) -> str:
-    """
-    Фу-ия для обработки captcha
-    :param path:
-    :return:
-    """
-    CAPTCHA_IMAGE_URL = path
+    finally:
+        # Ожидаем завершения потока
+        audio_thread.join()
+        count_participants_thread.join()
+        transcription_thread.join()
 
-    # Запрос на отправку капчи на 2Captcha
-    response = requests.post(
-        f"http://2captcha.com/in.php?key={API_KEY}&method=base64&body={CAPTCHA_IMAGE_URL}&json=1"
-    )
+    # Закрыть браузер после окончания встречи
+    driver.quit()
 
-    request_result = response.json()
 
-    if request_result['status'] == 1:
-        request_id = request_result['request']
-        print(f"Request ID: {request_id}")
 
-        # Ожидание решения капчи
-        solution = None
-        max_attempts = 10
-        for _ in range(max_attempts):
-            solution_response = requests.get(
-                f"http://2captcha.com/res.php?key={API_KEY}&action=get&id={request_id}&json=1")
-            solution_result = solution_response.json()
-            if solution_result['status'] == 1:
-                solution = solution_result['request']
-                break
+def captcha_solution(path):
+    solver = TwoCaptcha(API_KEY)
 
-        if solution:
-            print(f"Captcha solution: {solution}")
-            return solution
-        else:
-            print("Captcha solution not found")
+    try:
+        result = solver.normal(path)
+
+    except Exception as e:
+        sys.exit(e)
+
     else:
-        print("Error occurred:", request_result['request'])
+        return str(result["code"])
 
 
 
@@ -153,12 +136,7 @@ def finish_record(URL):
     service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
     options = webdriver.ChromeOptions()
     driver = webdriver.Chrome(service=service, options=options)
-    # base_url = "https://meet.google.com"
-    # path = "path to meeting"
-    #
-    # if not base_url.endswith('/'):
-    #     base_url += '/'
-    # URL_MEETING = ''.join([base_url, path])
+
     URL_MEETING = URL
     CSS_SELECTOR_PARTICIPANTS = '#ow3 > div.T4LgNb > div > div:nth-child(14) > div.crqnQb > div.fJsklc.nulMpf.Didmac.G03iKb > div > div > div.jsNRx > div > div:nth-child(2) > div > div > div'
     #path_participants = '//*[@id="ow3"]/div[1]/div/div[14]/div[3]/div[11]/div/div/div[3]/div/div[2]/div/div/div'
@@ -167,10 +145,12 @@ def finish_record(URL):
 
     # Присоединение к встрече
     join_button = driver.find_element("xpath", "//*[@id="'xDetDlgVideo'"]/div[2]/div/div[1]/span/a")
+    #join_button = driver.find_element("xpath", '//*[@id="xDetDlgVideo"]/div[2]/div/div[1]/span/a')
     join_button.click()
 
 
     previous_count = None
+    #start_time = time.time()
     while True:
         count = get_participants_count(driver,CSS_SELECTOR_PARTICIPANTS)
         if count is not None:
