@@ -1,0 +1,20 @@
+1
+0:00:00-->0:00:01
+Hello Emma.
+
+2
+0:00:01-->0:00:02
+Hey Brian.
+
+3
+0:00:02-->0:00:03
+How are you doing?
+
+4
+0:00:03-->0:00:04
+I am fine.
+
+5
+0:00:04-->0:00:05.600000
+May I invite you to a cup of tea?
+
