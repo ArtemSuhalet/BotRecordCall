@@ -2,6 +2,7 @@ import datetime
 import subprocess
 import warnings
 
+#from handlers.default_handlers.echo import *
 #from database.meet_process import get_participants_count
 
 import torch
@@ -59,10 +60,10 @@ def transcription_file(path):
         embeddings[i] = embedding_model(waveform[None])
 
     embeddings = np.nan_to_num(embeddings)
-    num_speakers = max_participants
+    #num_speakers = max_participants
     #num_speakers=1
 
-    clustering = AgglomerativeClustering(num_speakers).fit(embeddings)
+    clustering = AgglomerativeClustering(max_participants).fit(embeddings)
     labels = clustering.labels_
     for i in range(len(segments)):
         segments[i]["speaker"] = 'SPEAKER' + str(labels[i] + 1)

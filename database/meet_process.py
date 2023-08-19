@@ -17,11 +17,11 @@ from twocaptcha import TwoCaptcha
 
 import soundcard as sc
 import soundfile as sf
+#from handlers.default_handlers.echo import *
 
 API_KEY = os.getenv('API_KEY')
 EMAIL = os.getenv('EMAIL')
 PASSWORD = os.getenv('PASSWORD')
-#max_participants = 0
 
 
 def process_google_meet_link(URL):
@@ -31,12 +31,9 @@ def process_google_meet_link(URL):
     :return:
     """
     service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
-    # options = webdriver.ChromeOptions()
-    # options.add_argument("--use-fake-ui-for-media-stream")
     options = Options()
     options.add_argument("--use-fake-ui-for-media-stream")
     driver = webdriver.Chrome(service=service, options=options)
-    #URL = 'ссылка на встречу'
     driver.get("https://accounts.google.com/signin")
 
     # Вход в аккаунт Google
@@ -69,50 +66,53 @@ def process_google_meet_link(URL):
     time.sleep(10)
     print('refresh page')
     driver.refresh()
-    WebDriverWait(driver, timeout=10).until(lambda d: d.execute_script("return document.readyState") == "complete")
+    WebDriverWait(driver, timeout=15).until(lambda d: d.execute_script("return document.readyState") == "complete")
     join_button = driver.find_element("css selector",
                                       "#yDmH0d > c-wiz > div > div > div:nth-child(14) > div.crqnQb > div > div.gAGjv > div.vgJExf > div > div > div.d7iDfe.NONs6c > div.shTJQe > div.jtn8y > div.XCoPyb > div:nth-child(1) > button")
     join_button.click()
-
     time.sleep(10)
 
-    print('Waiting for the meeting to end...')
-    WebDriverWait(driver, timeout=600).until_not(EC.url_contains("meet.google.com"))
 
-    stop_recording()
+    OUTPUT_FILE_NAME = "out.wav"  # Имя файла.
+    SAMPLE_RATE = 48000  # [Гц]. Частота дискретизации.
+    #global recording_flag
+    num_frames_to_record = int(10 * SAMPLE_RATE)  # Записать 20 секунд аудио
 
-    # OUTPUT_FILE_NAME = "out.wav"  # Имя файла.
-    # SAMPLE_RATE = 48000  # [Гц]. Частота дискретизации.
-    #
-    # num_frames_to_record = int(10 * SAMPLE_RATE)  # Записать 20 секунд аудио
-    #
-    # with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(
-    #         samplerate=SAMPLE_RATE) as mic:
-    #     data = mic.record(numframes=num_frames_to_record)
-    #     sf.write(file=OUTPUT_FILE_NAME, data=data[:, 0], samplerate=SAMPLE_RATE)
-    # print('stop record')
+    with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(
+            samplerate=SAMPLE_RATE) as mic:
+        data = mic.record(numframes=SAMPLE_RATE)
+        sf.write(file=OUTPUT_FILE_NAME, data=data[:, 0], samplerate=SAMPLE_RATE)
+    print('stop record')
+
     time.sleep(5)
     # Создаем поток для записи аудио
-    audio_thread = threading.Thread(target=record_audio)
+    #audio_thread = threading.Thread(target=record_audio)
     #count_participants_thread = threading.Thread(target=finish_record(URL))#(target=finish_record, args=(URL,))
     transcription_thread = threading.Thread(target=transcription_file('/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav'))#(target=transcription_file, args=('out.wav',))
 
     try:
         # Запускаем поток записи аудио
-        audio_thread.start()
+        print('start audio')
+        #audio_thread.start()
+
+        # print('Waiting for the meeting to end...')
+        # WebDriverWait(driver, timeout=600).until_not(EC.url_contains("meet.google.com"))
+        #
+        # stop_recording()
+        #audio_thread.join()
         #count_participants_thread.start()
 
         transcription_thread.start()
 
-
+        transcription_thread.join()
     finally:
         # Ожидаем завершения потока
-        audio_thread.join()
+        #audio_thread.join()
         #count_participants_thread.join()
-        transcription_thread.join()
+        driver.quit()
 
     # Закрыть браузер после окончания встречи
-    driver.quit()
+
 
 
 

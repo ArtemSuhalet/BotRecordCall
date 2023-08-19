@@ -3,7 +3,7 @@ from loader import bot
 import openai
 import os
 from database.data import *
-from database.meet_process import *
+from database.meet_process import process_google_meet_link
 
 
 openai.api_key = os.getenv('KEY')
@@ -32,6 +32,7 @@ def bot_echo(message: Message):
 
 @bot.message_handler(commands=['meet'])
 def handle_meet_command(message):
+    global max_participants
     user_id = message.chat.id
 
     # Разделяем сообщение на аргументы
@@ -52,7 +53,6 @@ def handle_meet_command(message):
 
         if link.startswith("https://meet.google.com/"):
             if is_valid_google_meet_link(link):
-                #pass
                 process_google_meet_link(link)
             else:
                 bot.send_message(user_id, "Ссылка Google Meet не валидна")
