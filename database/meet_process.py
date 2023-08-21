@@ -105,21 +105,39 @@ def process_google_meet_link(URL, max_participants):
             print('start audio')
             audio_thread.start()
 
+        #     while True:
+        #         #if "meet.google.com" not in driver.current_url:
+        #         if URL != driver.current_url:
+        #             # Встреча закончилась, останавливаем запись и запускаем транскрипцию
+        #             recording_flag = False  # Остановить запись аудио
+        #             audio_thread.join()  # Дождаться завершения записи
+        #             print('stop record')
+        #
+        #             # Запускаем поток для транскрипции
+        #             print('start transcription')
+        #             transcription_thread.start()
+        #             transcription_thread.join()
+        #             break
+        #
+        #         time.sleep(10)  # Подождать перед следующей проверкой
+        # except Exception as e:
+        #     print("An error occurred during the meeting:", str(e))
+            # Пока кнопка по селектору не найдена на странице, ждем
             while True:
-                #if "meet.google.com" not in driver.current_url:
-                if URL != driver.current_url:
-                    # Встреча закончилась, останавливаем запись и запускаем транскрипцию
-                    recording_flag = False  # Остановить запись аудио
-                    audio_thread.join()  # Дождаться завершения записи
+                try:
+                    join_button = driver.find_element("css selector",
+                                                      "#ow3 > div.T4LgNb > div > div:nth-child(14) > div.crqnQb > div.fJsklc.nulMpf.Didmac.G03iKb > div > div > div.Tmb7Fd > div > div.NHaLPe > span > button")
+                    time.sleep(10)
+                except NoSuchElementException:
+                    # Кнопка не найдена, завершаем запись и начинаем транскрипцию
+                    recording_flag = False
+                    audio_thread.join()
                     print('stop record')
 
-                    # Запускаем поток для транскрипции
                     print('start transcription')
                     transcription_thread.start()
                     transcription_thread.join()
                     break
-
-                time.sleep(10)  # Подождать перед следующей проверкой
         except Exception as e:
             print("An error occurred during the meeting:", str(e))
 
