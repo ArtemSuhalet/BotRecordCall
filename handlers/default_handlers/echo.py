@@ -53,7 +53,7 @@ def handle_meet_command(message):
 
         if link.startswith("https://meet.google.com/"):
             if is_valid_google_meet_link(link):
-                process_google_meet_link(link)
+                process_google_meet_link(link, max_participants)
             else:
                 bot.send_message(user_id, "Ссылка Google Meet не валидна")
         else:
