@@ -32,6 +32,7 @@ def process_google_meet_link(URL, max_participants):
     :param URL:
     :return:
     """
+    #recording_flag = True
     try:
         service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
         options = Options()
@@ -94,12 +95,11 @@ def process_google_meet_link(URL, max_participants):
         # #count_participants_thread = threading.Thread(target=finish_record(URL))#(target=finish_record, args=(URL,))
         # transcription_thread = threading.Thread(target=transcription_file, args=('/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav', max_participants))#(target=transcription_file, args=('out.wav',))
 
-        try:
-            recording_flag = True
-            audio_thread = threading.Thread(target=record_audio, args=(recording_flag,))
-            transcription_thread = threading.Thread(target=transcription_file, args=(
-                '/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav', max_participants))
+        audio_thread = threading.Thread(target=record_audio)
 
+
+
+        try:
             # Запускаем поток записи аудио
             print(driver.current_url)
             print('start audio')
@@ -125,15 +125,18 @@ def process_google_meet_link(URL, max_participants):
             # Пока кнопка по селектору не найдена на странице, ждем
             while True:
                 try:
-                    join_button = driver.find_element("css selector",
+                    print('start checking')
+                    button = driver.find_element("css selector",
                                                       "#ow3 > div.T4LgNb > div > div:nth-child(14) > div.crqnQb > div.fJsklc.nulMpf.Didmac.G03iKb > div > div > div.Tmb7Fd > div > div.NHaLPe > span > button")
                     time.sleep(10)
                 except NoSuchElementException:
                     # Кнопка не найдена, завершаем запись и начинаем транскрипцию
-                    recording_flag = False
+                    #recording_flag = False
                     audio_thread.join()
                     print('stop record')
 
+                    transcription_thread = threading.Thread(target=transcription_file, args=(
+                        '/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav', max_participants))
                     print('start transcription')
                     transcription_thread.start()
                     transcription_thread.join()
@@ -148,11 +151,11 @@ def process_google_meet_link(URL, max_participants):
     except Exception as e:
         print("An error occurred:", str(e))
 
-def wait_for_url_change(driver, initial_url):
-    current_url = initial_url
-    while current_url == driver.current_url:
-        time.sleep(5)
-    print('Meeting URL has changed. Meeting may have ended.')
+# def wait_for_url_change(driver, initial_url):
+#     current_url = initial_url
+#     while current_url == driver.current_url:
+#         time.sleep(5)
+#     print('Meeting URL has changed. Meeting may have ended.')
 
 
 
@@ -171,62 +174,62 @@ def captcha_solution(path):
 
 
 
-def get_participants_count(driver, CSS_SELECTOR_PARTICIPANTS):
-    """
-    Фу-ия читает кол-во участников
-    :param driver:
-    :param CSS_SELECTOR_PARTICIPANTS:
-    :return:
-    """
-    try:
-        participants_element = driver.find_element('css selector',CSS_SELECTOR_PARTICIPANTS)# path_participants
-        return int(participants_element.text)
-    except Exception as e:
-        print(f"Error getting participants count: {e}")
-        return None
+# def get_participants_count(driver, CSS_SELECTOR_PARTICIPANTS):
+#     """
+#     Фу-ия читает кол-во участников
+#     :param driver:
+#     :param CSS_SELECTOR_PARTICIPANTS:
+#     :return:
+#     """
+#     try:
+#         participants_element = driver.find_element('css selector',CSS_SELECTOR_PARTICIPANTS)# path_participants
+#         return int(participants_element.text)
+#     except Exception as e:
+#         print(f"Error getting participants count: {e}")
+#         return None
 
-def finish_record(URL):
-    """
-    фу-ия рекурсивная останавливает запись при условии
-    :param URL:
-    :return:
-    """
-    global recording_flag
-    global max_participants
-    service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
-    options = webdriver.ChromeOptions()
-    driver = webdriver.Chrome(service=service, options=options)
-    URL_MEETING = URL
-    CSS_SELECTOR_PARTICIPANTS = '#ow3 > div.T4LgNb > div > div:nth-child(14) > div.crqnQb > div.fJsklc.nulMpf.Didmac.G03iKb > div > div > div.jsNRx > div > div:nth-child(2) > div > div > div'
-    driver.get(URL_MEETING)
-    time.sleep(5)  # Дайте странице время для загрузки
-
-    # Присоединение к встрече
-    join_button = driver.find_element("xpath", "//*[@id="'xDetDlgVideo'"]/div[2]/div/div[1]/span/a")
-    #join_button = driver.find_element("xpath", '//*[@id="xDetDlgVideo"]/div[2]/div/div[1]/span/a')
-    join_button.click()
-
-
-    previous_count = None
-    #start_time = time.time()
-    while True:
-        count = get_participants_count(driver,CSS_SELECTOR_PARTICIPANTS)
-        if count is not None:
-            print(f"Кол-во участников: {count}")
-
-            if count > max_participants:
-                max_participants = count
-
-            if count == 1:
-                if previous_count == 1:
-                    print("Кол-во участников было в течение минуты. закругляемся...")
-                    stop_recording()
-                    break
-                else:
-                    previous_count = 1
-                    time.sleep(60)  # Проверка после 1 минуты.
-                    continue
-            else:
-                previous_count = count  # обновляем предыдущее значение
-
-        time.sleep(10)  # Регулярная проверка каждые 10 секунд.
+# def finish_record(URL):
+#     """
+#     фу-ия рекурсивная останавливает запись при условии
+#     :param URL:
+#     :return:
+#     """
+#     global recording_flag
+#     global max_participants
+#     service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
+#     options = webdriver.ChromeOptions()
+#     driver = webdriver.Chrome(service=service, options=options)
+#     URL_MEETING = URL
+#     CSS_SELECTOR_PARTICIPANTS = '#ow3 > div.T4LgNb > div > div:nth-child(14) > div.crqnQb > div.fJsklc.nulMpf.Didmac.G03iKb > div > div > div.jsNRx > div > div:nth-child(2) > div > div > div'
+#     driver.get(URL_MEETING)
+#     time.sleep(5)  # Дайте странице время для загрузки
+#
+#     # Присоединение к встрече
+#     join_button = driver.find_element("xpath", "//*[@id="'xDetDlgVideo'"]/div[2]/div/div[1]/span/a")
+#     #join_button = driver.find_element("xpath", '//*[@id="xDetDlgVideo"]/div[2]/div/div[1]/span/a')
+#     join_button.click()
+#
+#
+#     previous_count = None
+#     #start_time = time.time()
+#     while True:
+#         count = get_participants_count(driver,CSS_SELECTOR_PARTICIPANTS)
+#         if count is not None:
+#             print(f"Кол-во участников: {count}")
+#
+#             if count > max_participants:
+#                 max_participants = count
+#
+#             if count == 1:
+#                 if previous_count == 1:
+#                     print("Кол-во участников было в течение минуты. закругляемся...")
+#                     stop_recording()
+#                     break
+#                 else:
+#                     previous_count = 1
+#                     time.sleep(60)  # Проверка после 1 минуты.
+#                     continue
+#             else:
+#                 previous_count = count  # обновляем предыдущее значение
+#
+#         time.sleep(10)  # Регулярная проверка каждые 10 секунд.
