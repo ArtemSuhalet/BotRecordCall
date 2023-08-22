@@ -96,6 +96,7 @@ def process_google_meet_link(URL, max_participants):
         # transcription_thread = threading.Thread(target=transcription_file, args=('/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav', max_participants))#(target=transcription_file, args=('out.wav',))
 
         audio_thread = threading.Thread(target=record_audio)
+        transcription_thread = threading.Thread(target=transcription_file('out.wav'))
 
 
 
@@ -135,10 +136,11 @@ def process_google_meet_link(URL, max_participants):
                     audio_thread.join()
                     print('stop record')
 
-                    transcription_thread = threading.Thread(target=transcription_file, args=(
-                        '/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav', max_participants))
+                    #transcription_thread = threading.Thread(target=transcription_file, args=('/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav', max_participants))
+                    #transcription_thread = threading.Thread(target=transcription_file('out.wav'))
                     print('start transcription')
                     transcription_thread.start()
+                    print('the end')
                     transcription_thread.join()
                     break
         except Exception as e:
