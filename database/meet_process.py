@@ -57,7 +57,7 @@ def setup_webdriver(EMAIL, PASSWORD, URL):
 
 
 def process_google_meet_link(URL, max_participants):
-    # Ваши настройки исходной функции
+    # настройки исходной функции
 
     p, stream = setup_audio_stream()
     frames = []
