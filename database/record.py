@@ -1,33 +1,89 @@
-from database.meet_process import *
+#from database.meet_process import *
+import time
+
 import soundcard as sc
 import soundfile as sf
+import pyaudio
+import wave
+from selenium.common import NoSuchElementException
 
+# Настройки записи
+CHUNK = 1024
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+OUTPUT_FILENAME = "output.wav"
 
+def setup_audio_stream():
+    p = pyaudio.PyAudio()
+    stream = p.open(format=FORMAT,
+                    channels=CHANNELS,
+                    rate=RATE,
+                    input=True,
+                    frames_per_buffer=CHUNK)
+    return p, stream
 
-OUTPUT_FILE_NAME = "out.wav"  # Имя файла.
-SAMPLE_RATE = 48000  # [Гц]. Частота дискретизации.
+def start_recording(stream, frames, driver, URL):
+    CSS_SELECTOR_PARTICIPANTS = '#ow3 > div.T4LgNb > div > div:nth-child(14) > div.crqnQb > div.fJsklc.nulMpf.Didmac.G03iKb > div > div > div.jsNRx > div > div:nth-child(2) > div > div > div'
+    CSS_SELECTOR_END_RECORD_BUTTON = '#ow3 > div.T4LgNb > div > div:nth-child(14) > div.crqnQb > div.fJsklc.nulMpf.Didmac.G03iKb > div > div > div.Tmb7Fd > div > div.NHaLPe > span > button'
 
-# Глобальный флаг для управления записью
-recording_flag = True
+    previous_count = None
+    while True:
+        try:
+            participants_element = driver.find_element('css selector', CSS_SELECTOR_PARTICIPANTS)
+            count = int(participants_element.text)
+            if count == 1:
+                if previous_count == 1:
+                    print("Количество участников было в течение минуты. Завершаем запись.")
+                    # Нажимаем кнопку завершения записи
+                    try:
+                        end_record_button = driver.find_element('css selector', CSS_SELECTOR_END_RECORD_BUTTON)
+                        end_record_button.click()
+                    except NoSuchElementException:
+                        print("Кнопка завершения записи не найдена.")
+                    break
+                else:
+                    previous_count = 1
+                    time.sleep(10)
+                    continue
+            else:
+                previous_count = count
+        except NoSuchElementException:
+            print("Кнопка для подсчета участников не найдена. Завершаем запись.")
+            break
 
-def record_audio():
+        data = stream.read(CHUNK, exception_on_overflow=False)
+        frames.append(data)
 
-    global recording_flag
-    with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(samplerate=SAMPLE_RATE) as mic:
-        while recording_flag:
-            data = mic.record(numframes=SAMPLE_RATE)
-            sf.write(file=OUTPUT_FILE_NAME, data=data[:, 0], samplerate=SAMPLE_RATE)
+    # Вариант проверки на изменение url после нажатия кнопки end
+    # current_url = URL
+    # while current_url == URL:
+    #     data = stream.read(CHUNK, exception_on_overflow=False)
+    #     frames.append(data)
+    # else:
+    #
+    #     print("URL has changed, stopping audio recording")
+
+def save_audio_file(frames, p):
+    p.terminate()
+    with wave.open(OUTPUT_FILENAME, 'wb') as wf:
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(p.get_sample_size(FORMAT))
+        wf.setframerate(RATE)
+        wf.writeframes(b''.join(frames))
+
 
 # def record_audio():
 #     global recording_flag
-#     num_frames_to_record = int(20 * SAMPLE_RATE)  # Записать 20 секунд аудио
+#     OUTPUT_FILE_NAME = "/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav"  # Имя файла.
+#     SAMPLE_RATE = 48000  # [Гц]. Частота дискретизации.
 #
-#     with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(samplerate=SAMPLE_RATE) as mic:
-#         data = mic.record(numframes=num_frames_to_record)
-#         sf.write(file=OUTPUT_FILE_NAME, data=data[:, 0], samplerate=SAMPLE_RATE)
+#     with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(
+#             samplerate=SAMPLE_RATE) as mic:
+#         while recording_flag:
+#             data = mic.record(numframes=SAMPLE_RATE)
+#             sf.write(file=OUTPUT_FILE_NAME, data=data[:, 0], samplerate=SAMPLE_RATE)
 
-def stop_recording():
-    global recording_flag
-    recording_flag = False
+
 
 

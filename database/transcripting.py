@@ -2,7 +2,6 @@ import datetime
 import subprocess
 import warnings
 
-#from database.meet_process import get_participants_count
 
 import torch
 
@@ -12,7 +11,7 @@ import contextlib
 from pyannote.audio import Audio
 from pyannote.core import Segment
 
-import openai
+
 import whisper
 
 from sklearn.cluster import AgglomerativeClustering
@@ -26,16 +25,16 @@ embedding_model = PretrainedSpeakerEmbedding(
 
 warnings.filterwarnings('ignore')
 
-def transcription_file(path):
+def transcription_file(path, max_participants):
     """
     Функция для транскрипции файла в текст
     :param path:
     :return:
     """
-    global max_participants
+
     if path[-3:] != 'wav':
-        subprocess.call(['ffmpeg', '-i', path, '2.wav', '-y'])
-        path = '2.wav'
+        subprocess.call(['ffmpeg', '-i', path, '22.wav', '-y'])
+        path = '22.wav'
     model = whisper.load_model('tiny')
 
     option = whisper.DecodingOptions(fp16=False)
@@ -60,7 +59,7 @@ def transcription_file(path):
 
     embeddings = np.nan_to_num(embeddings)
     num_speakers = max_participants
-    #num_speakers=1
+
 
     clustering = AgglomerativeClustering(num_speakers).fit(embeddings)
     labels = clustering.labels_
@@ -76,8 +75,3 @@ def transcription_file(path):
                 datetime.timedelta(seconds=segment['end'])) + '\n')
             f.write(segment['text'].strip() + '\n')
             f.write('\n')
-
-
-#transcription_file('out.wav')
-# path = "/Users/mymacbook/Documents/13.mp3"
-# transcript = transcription_file(path)

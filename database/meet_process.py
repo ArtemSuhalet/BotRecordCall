@@ -1,4 +1,8 @@
-from database.record import stop_recording, record_audio
+import wave
+
+from selenium.common import NoSuchElementException
+
+from database.record import setup_audio_stream, start_recording, save_audio_file, OUTPUT_FILENAME
 from database.transcripting import transcription_file
 import os
 import time
@@ -15,104 +19,74 @@ import requests
 import threading
 from twocaptcha import TwoCaptcha
 
-import soundcard as sc
-import soundfile as sf
+# import soundcard as sc
+# import soundfile as sf
+#from handlers.default_handlers.echo import *
 
 API_KEY = os.getenv('API_KEY')
 EMAIL = os.getenv('EMAIL')
 PASSWORD = os.getenv('PASSWORD')
-#max_participants = 0
 
 
-def process_google_meet_link(URL):
-    """
-    Фу-ия для перехода к встрече по ссылке,
-    :param URL:
-    :return:
-    """
-    service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
-    # options = webdriver.ChromeOptions()
-    # options.add_argument("--use-fake-ui-for-media-stream")
-    options = Options()
-    options.add_argument("--use-fake-ui-for-media-stream")
-    driver = webdriver.Chrome(service=service, options=options)
-    #URL = 'ссылка на встречу'
-    driver.get("https://accounts.google.com/signin")
-
-    # Вход в аккаунт Google
-    email_elem = driver.find_element("xpath", "//input[@type='email']")
-    email_elem.send_keys(EMAIL)
-    email_elem.send_keys(Keys.RETURN)
-    time.sleep(2)  # Добавлено для паузы
-
-    # Получение изображения капчи
-    # captcha_image_element = driver.find_element('css selector', '#captchaimg')
-    # captcha_image_url = captcha_image_element.get_attribute('src')
-    # #print(captcha_image_url)
-    # time.sleep(5)
-
-    # Получение решения капчи & Ввод решения капчи
-    # captcha_input_element = driver.find_element('xpath', '//*[@id="ca"]')
-    # captcha_input_element.send_keys(captcha_solution(captcha_image_url))
-    # time.sleep(10)
-    # captcha_input_element.send_keys(Keys.RETURN)
-    # time.sleep(5)
-
-    password_elem = driver.find_element("xpath", "//input[@type='password']")
-    password_elem.send_keys(PASSWORD)
-    password_elem.send_keys(Keys.RETURN)
-    time.sleep(5)  # Добавлено для паузы
-
-    # Переход к встрече Google Meet
-    driver.get(URL)
-    WebDriverWait(driver, timeout=10).until(lambda d: d.execute_script("return document.readyState") == "complete")
-    time.sleep(10)
-    print('refresh page')
-    driver.refresh()
-    WebDriverWait(driver, timeout=10).until(lambda d: d.execute_script("return document.readyState") == "complete")
-    join_button = driver.find_element("css selector",
-                                      "#yDmH0d > c-wiz > div > div > div:nth-child(14) > div.crqnQb > div > div.gAGjv > div.vgJExf > div > div > div.d7iDfe.NONs6c > div.shTJQe > div.jtn8y > div.XCoPyb > div:nth-child(1) > button")
-    join_button.click()
-
-    time.sleep(10)
-
-    print('Waiting for the meeting to end...')
-    WebDriverWait(driver, timeout=600).until_not(EC.url_contains("meet.google.com"))
-
-    stop_recording()
-
-    # OUTPUT_FILE_NAME = "out.wav"  # Имя файла.
-    # SAMPLE_RATE = 48000  # [Гц]. Частота дискретизации.
-    #
-    # num_frames_to_record = int(10 * SAMPLE_RATE)  # Записать 20 секунд аудио
-    #
-    # with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(
-    #         samplerate=SAMPLE_RATE) as mic:
-    #     data = mic.record(numframes=num_frames_to_record)
-    #     sf.write(file=OUTPUT_FILE_NAME, data=data[:, 0], samplerate=SAMPLE_RATE)
-    # print('stop record')
-    time.sleep(5)
-    # Создаем поток для записи аудио
-    audio_thread = threading.Thread(target=record_audio)
-    #count_participants_thread = threading.Thread(target=finish_record(URL))#(target=finish_record, args=(URL,))
-    transcription_thread = threading.Thread(target=transcription_file('/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav'))#(target=transcription_file, args=('out.wav',))
-
-    try:
-        # Запускаем поток записи аудио
-        audio_thread.start()
-        #count_participants_thread.start()
-
-        transcription_thread.start()
+# def process_google_meet_link(URL, max_participants):
+#     """
+#     Фу-ия для перехода к встрече по ссылке,
+#     :param URL:
+#     :return:
+#     """
+#     recording_flag = [True]
+#     lock = threading.Lock()
+#       # Список для передачи по ссылке
+#     try:
+#         service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
+#         options = Options()
+#         options.add_argument("--use-fake-ui-for-media-stream")
+#         driver = webdriver.Chrome(service=service, options=options)
+#         driver.get("https://accounts.google.com/signin")
+#
+#         # Вход в аккаунт Google
+#         email_elem = driver.find_element("xpath", "//input[@type='email']")
+#         email_elem.send_keys(EMAIL)
+#         email_elem.send_keys(Keys.RETURN)
+#         time.sleep(2)  # Добавлено для паузы
+#
+#
+        # #Получение изображения капчи
+        # captcha_elements = driver.find_elements('css selector', '#captchaimg')
+        # if captcha_elements:
+        #     captcha_image_element = captcha_elements[0]
+        #     captcha_image_url = captcha_image_element.get_attribute('src')
+        #     time.sleep(10)
+        #
+        #     captcha_input_element = driver.find_element('xpath', '//*[@id="ca"]')
+        #     captcha_input_element.send_keys(captcha_solution(captcha_image_url))
+        #     time.sleep(10)
+        #     captcha_input_element.send_keys(Keys.RETURN)
+        #     time.sleep(5)
+#
+#         password_elem = driver.find_element("xpath", "//input[@type='password']")
+#         password_elem.send_keys(PASSWORD)
+#         password_elem.send_keys(Keys.RETURN)
+#         time.sleep(5)  # Добавлено для паузы
+#
+#         # Переход к встрече Google Meet
+#         driver.get(URL)
+#         WebDriverWait(driver, timeout=10).until(lambda d: d.execute_script("return document.readyState") == "complete")
+#         time.sleep(10)
+#         print('refresh page')
+#         driver.refresh()
+#         WebDriverWait(driver, timeout=15).until(lambda d: d.execute_script("return document.readyState") == "complete")
+#         join_button = driver.find_element("css selector",
+#                                           "#yDmH0d > c-wiz > div > div > div:nth-child(14) > div.crqnQb > div > div.gAGjv > div.vgJExf > div > div > div.d7iDfe.NONs6c > div.shTJQe > div.jtn8y > div.XCoPyb > div:nth-child(1) > button")
+#         join_button.click()
+#         time.sleep(15)
+#
+#         # audio_thread = threading.Thread(target=record_audio, args=(recording_flag,))
+#         # url_monitor_thread = threading.Thread(target=monitor_url_change,
+#         #                                       args=(driver, [driver.current_url], recording_flag))
+#
 
 
-    finally:
-        # Ожидаем завершения потока
-        audio_thread.join()
-        #count_participants_thread.join()
-        transcription_thread.join()
-
-    # Закрыть браузер после окончания встречи
-    driver.quit()
 
 
 
@@ -129,63 +103,57 @@ def captcha_solution(path):
         return str(result["code"])
 
 
-
-def get_participants_count(driver, CSS_SELECTOR_PARTICIPANTS):
-    """
-    Фу-ия читает кол-во участников
-    :param driver:
-    :param CSS_SELECTOR_PARTICIPANTS:
-    :return:
-    """
-    try:
-        participants_element = driver.find_element('css selector',CSS_SELECTOR_PARTICIPANTS)# path_participants
-        return int(participants_element.text)
-    except Exception as e:
-        print(f"Error getting participants count: {e}")
-        return None
-
-def finish_record(URL):
-    """
-    фу-ия рекурсивная останавливает запись при условии
-    :param URL:
-    :return:
-    """
-    global recording_flag
-    global max_participants
+def setup_webdriver(EMAIL, PASSWORD, URL):
     service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
-    options = webdriver.ChromeOptions()
+    options = Options()
+    options.add_argument("--use-fake-ui-for-media-stream")
     driver = webdriver.Chrome(service=service, options=options)
-    URL_MEETING = URL
-    CSS_SELECTOR_PARTICIPANTS = '#ow3 > div.T4LgNb > div > div:nth-child(14) > div.crqnQb > div.fJsklc.nulMpf.Didmac.G03iKb > div > div > div.jsNRx > div > div:nth-child(2) > div > div > div'
-    driver.get(URL_MEETING)
-    time.sleep(5)  # Дайте странице время для загрузки
+    driver.get("https://accounts.google.com/signin")
 
-    # Присоединение к встрече
-    join_button = driver.find_element("xpath", "//*[@id="'xDetDlgVideo'"]/div[2]/div/div[1]/span/a")
-    #join_button = driver.find_element("xpath", '//*[@id="xDetDlgVideo"]/div[2]/div/div[1]/span/a')
+    email_elem = driver.find_element("xpath", "//input[@type='email']")
+    email_elem.send_keys(EMAIL)
+    email_elem.send_keys(Keys.RETURN)
+    time.sleep(2)
+
+    password_elem = driver.find_element("xpath", "//input[@type='password']")
+    password_elem.send_keys(PASSWORD)
+    password_elem.send_keys(Keys.RETURN)
+    time.sleep(5)
+
+    driver.get(URL)
+    WebDriverWait(driver, timeout=10).until(lambda d: d.execute_script("return document.readyState") == "complete")
+    time.sleep(10)
+    driver.refresh()
+    WebDriverWait(driver, timeout=15).until(lambda d: d.execute_script("return document.readyState") == "complete")
+    join_button = driver.find_element("css selector",
+                                      "#yDmH0d > c-wiz > div > div > div:nth-child(14) > div.crqnQb > div > div.gAGjv > div.vgJExf > div > div > div.d7iDfe.NONs6c > div.shTJQe > div.jtn8y > div.XCoPyb > div:nth-child(1) > button")
     join_button.click()
+    return driver
 
 
-    previous_count = None
-    #start_time = time.time()
-    while True:
-        count = get_participants_count(driver,CSS_SELECTOR_PARTICIPANTS)
-        if count is not None:
-            print(f"Кол-во участников: {count}")
+def process_google_meet_link(URL, max_participants):
+    # Ваши настройки исходной функции
 
-            if count > max_participants:
-                max_participants = count
+    p, stream = setup_audio_stream()
+    frames = []
+    driver = setup_webdriver(EMAIL, PASSWORD, URL)
+    time.sleep(10)
 
-            if count == 1:
-                if previous_count == 1:
-                    print("Кол-во участников было в течение минуты. закругляемся...")
-                    stop_recording()
-                    break
-                else:
-                    previous_count = 1
-                    time.sleep(60)  # Проверка после 1 минуты.
-                    continue
-            else:
-                previous_count = count  # обновляем предыдущее значение
+    # Запись аудио
+    print('start record')
+    start_recording(stream, frames, driver, URL)
+    time.sleep(10)
 
-        time.sleep(10)  # Регулярная проверка каждые 10 секунд.
+    # Завершение записи и сохранение файла
+    print('save file')
+    save_audio_file(frames, p)
+    time.sleep(10)
+
+    # Транскрибирование файла
+    print('start transcription')
+    transcription_file(OUTPUT_FILENAME, max_participants)
+    time.sleep(10)
+
+    # Завершение работы с webdriver
+    print('good riddance')
+    driver.quit()
