@@ -28,81 +28,6 @@ EMAIL = os.getenv('EMAIL')
 PASSWORD = os.getenv('PASSWORD')
 
 
-# def process_google_meet_link(URL, max_participants):
-#     """
-#     Фу-ия для перехода к встрече по ссылке,
-#     :param URL:
-#     :return:
-#     """
-#     recording_flag = [True]
-#     lock = threading.Lock()
-#       # Список для передачи по ссылке
-#     try:
-#         service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
-#         options = Options()
-#         options.add_argument("--use-fake-ui-for-media-stream")
-#         driver = webdriver.Chrome(service=service, options=options)
-#         driver.get("https://accounts.google.com/signin")
-#
-#         # Вход в аккаунт Google
-#         email_elem = driver.find_element("xpath", "//input[@type='email']")
-#         email_elem.send_keys(EMAIL)
-#         email_elem.send_keys(Keys.RETURN)
-#         time.sleep(2)  # Добавлено для паузы
-#
-#
-        # #Получение изображения капчи
-        # captcha_elements = driver.find_elements('css selector', '#captchaimg')
-        # if captcha_elements:
-        #     captcha_image_element = captcha_elements[0]
-        #     captcha_image_url = captcha_image_element.get_attribute('src')
-        #     time.sleep(10)
-        #
-        #     captcha_input_element = driver.find_element('xpath', '//*[@id="ca"]')
-        #     captcha_input_element.send_keys(captcha_solution(captcha_image_url))
-        #     time.sleep(10)
-        #     captcha_input_element.send_keys(Keys.RETURN)
-        #     time.sleep(5)
-#
-#         password_elem = driver.find_element("xpath", "//input[@type='password']")
-#         password_elem.send_keys(PASSWORD)
-#         password_elem.send_keys(Keys.RETURN)
-#         time.sleep(5)  # Добавлено для паузы
-#
-#         # Переход к встрече Google Meet
-#         driver.get(URL)
-#         WebDriverWait(driver, timeout=10).until(lambda d: d.execute_script("return document.readyState") == "complete")
-#         time.sleep(10)
-#         print('refresh page')
-#         driver.refresh()
-#         WebDriverWait(driver, timeout=15).until(lambda d: d.execute_script("return document.readyState") == "complete")
-#         join_button = driver.find_element("css selector",
-#                                           "#yDmH0d > c-wiz > div > div > div:nth-child(14) > div.crqnQb > div > div.gAGjv > div.vgJExf > div > div > div.d7iDfe.NONs6c > div.shTJQe > div.jtn8y > div.XCoPyb > div:nth-child(1) > button")
-#         join_button.click()
-#         time.sleep(15)
-#
-#         # audio_thread = threading.Thread(target=record_audio, args=(recording_flag,))
-#         # url_monitor_thread = threading.Thread(target=monitor_url_change,
-#         #                                       args=(driver, [driver.current_url], recording_flag))
-#
-
-
-
-
-
-def captcha_solution(path):
-    solver = TwoCaptcha(API_KEY)
-
-    try:
-        result = solver.normal(path)
-
-    except Exception as e:
-        sys.exit(e)
-
-    else:
-        return str(result["code"])
-
-
 def setup_webdriver(EMAIL, PASSWORD, URL):
     service = Service(executable_path='/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/chromedriver')
     options = Options()
@@ -157,3 +82,32 @@ def process_google_meet_link(URL, max_participants):
     # Завершение работы с webdriver
     print('good riddance')
     driver.quit()
+
+
+
+
+#Получение изображения капчи
+        # captcha_elements = driver.find_elements('css selector', '#captchaimg')
+        # if captcha_elements:
+        #     captcha_image_element = captcha_elements[0]
+        #     captcha_image_url = captcha_image_element.get_attribute('src')
+        #     time.sleep(10)
+        #
+        #     captcha_input_element = driver.find_element('xpath', '//*[@id="ca"]')
+        #     captcha_input_element.send_keys(captcha_solution(captcha_image_url))
+        #     time.sleep(10)
+        #     captcha_input_element.send_keys(Keys.RETURN)
+        #     time.sleep(5)
+
+
+# def captcha_solution(path):
+#     solver = TwoCaptcha(API_KEY)
+
+#     try:
+#         result = solver.normal(path)
+
+#     except Exception as e:
+#         sys.exit(e)
+
+#     else:
+#         return str(result["code"])
