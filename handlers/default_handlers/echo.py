@@ -8,7 +8,7 @@ from database.meet_process import process_google_meet_link
 
 openai.api_key = os.getenv('KEY')
 requests_array = []
-max_participants = 0
+#max_participants = 0
 
 @bot.message_handler(content_types=['text'])
 def bot_echo(message: Message):
@@ -32,7 +32,7 @@ def bot_echo(message: Message):
 
 @bot.message_handler(commands=['meet'])
 def handle_meet_command(message):
-    global max_participants
+    #global max_participants
     user_id = message.chat.id
 
     # Разделяем сообщение на аргументы
