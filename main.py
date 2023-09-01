@@ -12,7 +12,6 @@ if __name__ == '__main__':
         bot.set_my_commands(
             [BotCommand(*i) for i in DEFAULT_COMMANDS]
         )
-    #data.create_db()
     bot.polling(none_stop=True, interval=0)
 
 
