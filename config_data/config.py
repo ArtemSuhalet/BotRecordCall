@@ -1,5 +1,4 @@
 import os
-import sqlite3
 from peewee import *
 from dotenv import load_dotenv, find_dotenv
 
@@ -17,7 +16,3 @@ DEFAULT_COMMANDS = (
     ('help', "Вывести справку"),
 
 )
-
-
-
-my_db = SqliteDatabase('bot.db')
