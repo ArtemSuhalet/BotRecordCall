@@ -8,7 +8,7 @@ from database.meet_process import process_google_meet_link
 
 openai.api_key = os.getenv('KEY')
 requests_array = []
-#max_participants = 0
+
 MAX_MESSAGE_LENGTH = 4096
 @bot.message_handler(content_types=['text'])
 def bot_echo(message: Message):
