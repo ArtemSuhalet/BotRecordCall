@@ -1,4 +1,5 @@
 import os
+import sqlite3
 from peewee import *
 from dotenv import load_dotenv, find_dotenv
 
