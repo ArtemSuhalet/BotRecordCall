@@ -1,24 +1,26 @@
 from telebot.types import Message
 from loader import bot
-import openai
-import os
+
 from database.data import *
 from database.meet_process import process_google_meet_link
 
 
-openai.api_key = os.getenv('KEY')
 requests_array = []
 
-MAX_MESSAGE_LENGTH = 4096
+
 @bot.message_handler(content_types=['text'])
 def bot_echo(message: Message):
-    #запросы
+    print("Received message:", message.text)  # Отладочное сообщение
     user_request = message.text
     if user_request.startswith("/meet "):
+
         handle_meet_command(message)  # Вызываем обработку команды /meet
-    else:
+
+    elif user_request.startswith("/ask "):
+
+        file_request = user_request[5:]  # Убираем команду "/ask "
         file_request = read_file_request()
-        #формируем и закидываем в массив запросы
+        # формируем и закидываем в массив запросы
         request_obj = {
             "user_request": user_request,
             "file_request": file_request,
@@ -26,16 +28,18 @@ def bot_echo(message: Message):
         requests_array.append(request_obj)
         # Функция для обработки запроса в GPT
         response = process_gpt_request(file_request, user_request)
+        print("Sending response to user:", response)  # Отладочное сообщение
+        bot.send_message(message.chat.id, response)
 
-        # Разбиваем ответ на части и отправляем каждую часть
-        for chunk in split_text_into_chunks(response, MAX_MESSAGE_LENGTH):
-            bot.send_message(message.chat.id, chunk)
-        #bot.send_message(message.chat.id, response)
+    else:
+        response = request_chat(user_request)
+
+        bot.send_message(message.chat.id, response)
+
 
 
 @bot.message_handler(commands=['meet'])
 def handle_meet_command(message):
-    #global max_participants
     user_id = message.chat.id
 
     # Разделяем сообщение на аргументы
@@ -63,4 +67,5 @@ def handle_meet_command(message):
             bot.send_message(user_id, "Ссылка не распознана")
     else:
         bot.send_message(user_id, "Неизвестная команда")
+
 
