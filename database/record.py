@@ -1,4 +1,4 @@
-
+#from database.meet_process import *
 import time
 
 import soundcard as sc
@@ -71,6 +71,18 @@ def save_audio_file(frames, p):
         wf.setsampwidth(p.get_sample_size(FORMAT))
         wf.setframerate(RATE)
         wf.writeframes(b''.join(frames))
+
+
+# def record_audio():
+#     global recording_flag
+#     OUTPUT_FILE_NAME = "/Users/mymacbook/PycharmProjects/pythonProject/BotRecordCall/out.wav"  # Имя файла.
+#     SAMPLE_RATE = 48000  # [Гц]. Частота дискретизации.
+#
+#     with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(
+#             samplerate=SAMPLE_RATE) as mic:
+#         while recording_flag:
+#             data = mic.record(numframes=SAMPLE_RATE)
+#             sf.write(file=OUTPUT_FILE_NAME, data=data[:, 0], samplerate=SAMPLE_RATE)
 
 
 

@@ -15,17 +15,26 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
-import requests
-import threading
+
 from twocaptcha import TwoCaptcha
 
-# import soundcard as sc
-# import soundfile as sf
-#from handlers.default_handlers.echo import *
 
 API_KEY = os.getenv('API_KEY')
 EMAIL = os.getenv('EMAIL')
 PASSWORD = os.getenv('PASSWORD')
+
+
+def captcha_solution(path):
+    solver = TwoCaptcha(API_KEY)
+
+    try:
+        result = solver.normal(path)
+
+    except Exception as e:
+        sys.exit(e)
+
+    else:
+        return str(result["code"])
 
 
 def setup_webdriver(EMAIL, PASSWORD, URL):
@@ -57,7 +66,7 @@ def setup_webdriver(EMAIL, PASSWORD, URL):
 
 
 def process_google_meet_link(URL, max_participants):
-    # настройки исходной функции
+    # Ваши настройки исходной функции
 
     p, stream = setup_audio_stream()
     frames = []
@@ -84,30 +93,15 @@ def process_google_meet_link(URL, max_participants):
     driver.quit()
 
 
-
-
-#Получение изображения капчи
-        # captcha_elements = driver.find_elements('css selector', '#captchaimg')
-        # if captcha_elements:
-        #     captcha_image_element = captcha_elements[0]
-        #     captcha_image_url = captcha_image_element.get_attribute('src')
-        #     time.sleep(10)
-        #
-        #     captcha_input_element = driver.find_element('xpath', '//*[@id="ca"]')
-        #     captcha_input_element.send_keys(captcha_solution(captcha_image_url))
-        #     time.sleep(10)
-        #     captcha_input_element.send_keys(Keys.RETURN)
-        #     time.sleep(5)
-
-
-# def captcha_solution(path):
-#     solver = TwoCaptcha(API_KEY)
-
-#     try:
-#         result = solver.normal(path)
-
-#     except Exception as e:
-#         sys.exit(e)
-
-#     else:
-#         return str(result["code"])
+# #Получение изображения капчи
+# captcha_elements = driver.find_elements('css selector', '#captchaimg')
+# if captcha_elements:
+#     captcha_image_element = captcha_elements[0]
+#     captcha_image_url = captcha_image_element.get_attribute('src')
+#     time.sleep(10)
+#
+#     captcha_input_element = driver.find_element('xpath', '//*[@id="ca"]')
+#     captcha_input_element.send_keys(captcha_solution(captcha_image_url))
+#     time.sleep(10)
+#     captcha_input_element.send_keys(Keys.RETURN)
+#     time.sleep(5)

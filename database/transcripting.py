@@ -2,7 +2,6 @@ import datetime
 import subprocess
 import warnings
 
-
 import torch
 
 import wave
@@ -66,12 +65,16 @@ def transcription_file(path, max_participants):
     for i in range(len(segments)):
         segments[i]["speaker"] = 'SPEAKER' + str(labels[i] + 1)
 
-    save_target = 'transcribe.txt'
+    save_target = 'transcribe1.txt'
 
     with open(save_target, 'w') as f:
+        #for segment in result['segments']:
         for index, segment in enumerate(result['segments']):
-            f.write(str(index + 1) + '\n')
-            f.write(str(datetime.timedelta(seconds=segment['start'])) + '-->' + str(
-                datetime.timedelta(seconds=segment['end'])) + '\n')
-            f.write(segment['text'].strip() + '\n')
-            f.write('\n')
+            #f.write(str(index + 1) + '\n')
+        #     f.write(str(datetime.timedelta(seconds=segment['start'])) + '-->' + str(
+        #         datetime.timedelta(seconds=segment['end'])) + '\n')
+            #f.write(segment['text'].strip() + '\n')
+            f.write(str(index + 1) + '.' + segment['text'].strip())
+            #f.write('\n')
+
+
